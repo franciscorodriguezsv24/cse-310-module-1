@@ -10,8 +10,11 @@ import com.alejandro.eventcheckin.EventCheckInApplication
 import com.alejandro.eventcheckin.data.Attendee
 import com.alejandro.eventcheckin.data.Event
 import com.alejandro.eventcheckin.data.EventRepository
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -33,6 +36,54 @@ class EventViewModel(private val repository: EventRepository) : ViewModel() {
         started = SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS),
         initialValue = emptyList()
     )
+
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
+
+    /** The list the first screen draws: every event that matches the search box. */
+    val filteredEvents: StateFlow<List<Event>> =
+        combine(repository.events, _searchQuery) { events, query ->
+            if (query.isBlank()) {
+                events
+            } else {
+                events.filter {
+                    it.name.contains(query, ignoreCase = true) ||
+                        it.location.contains(query, ignoreCase = true) ||
+                        it.date.contains(query, ignoreCase = true)
+                }
+            }
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS),
+            initialValue = emptyList()
+        )
+
+    fun onSearchQueryChange(query: String) {
+        _searchQuery.value = query
+    }
+
+    fun addEvent(name: String, location: String, date: String) = viewModelScope.launch {
+        repository.addEvent(name, location, date)
+    }
+
+    fun updateEvent(event: Event, name: String, location: String, date: String) =
+        viewModelScope.launch {
+            repository.updateEvent(
+                event.copy(name = name.trim(), location = location.trim(), date = date.trim())
+            )
+        }
+
+    fun deleteEvent(event: Event) = viewModelScope.launch {
+        repository.deleteEvent(event)
+    }
+
+    fun updateAttendee(attendee: Attendee, name: String, phone: String) = viewModelScope.launch {
+        repository.updateAttendee(attendee.copy(name = name.trim(), phone = phone.trim()))
+    }
+
+    fun deleteAttendee(attendee: Attendee) = viewModelScope.launch {
+        repository.deleteAttendee(attendee)
+    }
 
     fun toggleCheckIn(attendee: Attendee) = viewModelScope.launch {
         repository.setCheckedIn(attendee.id, !attendee.checkedIn)
