@@ -4,16 +4,8 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
+import com.alejandro.eventcheckin.data.SampleData
+import com.alejandro.eventcheckin.ui.events.EventListScreen
 import com.alejandro.eventcheckin.ui.theme.EventCheckInTheme
 
 class MainActivity : ComponentActivity() {
@@ -22,32 +14,13 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             EventCheckInTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Welcome(modifier = Modifier.padding(innerPadding))
-                }
+                EventListScreen(
+                    events = SampleData.events,
+                    checkedInCount = { id -> SampleData.attendeesFor(id).count { it.checkedIn } },
+                    totalCount = { id -> SampleData.attendeesFor(id).size },
+                    onEventClick = {}
+                )
             }
         }
-    }
-}
-
-@Composable
-fun Welcome(modifier: Modifier = Modifier) {
-    Column(modifier = modifier.padding(24.dp)) {
-        Text(
-            text = "Event Check-In",
-            style = MaterialTheme.typography.headlineMedium
-        )
-        Text(
-            text = "CSE 310 - Module 1 - Kotlin",
-            style = MaterialTheme.typography.bodyLarge
-        )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun WelcomePreview() {
-    EventCheckInTheme {
-        Welcome()
     }
 }
