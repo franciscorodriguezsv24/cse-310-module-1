@@ -18,7 +18,7 @@ one event with a checkbox for each person and a running count at the top. Two
 forms create and edit events and attendees, with validation messages under the
 fields that are wrong.
 
-[Software Demo Video](http://youtube.link.goes.here)
+[Software Demo Video](https://www.loom.com/share/e558d191f24e43e8960dd5c83e528ac2)
 
 # Development Environment
 
