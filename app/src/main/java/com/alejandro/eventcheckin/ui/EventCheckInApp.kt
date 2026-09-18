@@ -26,7 +26,7 @@ object Routes {
 
 /** The navigation graph: list -> detail -> add attendee. */
 @Composable
-fun EventCheckInApp(viewModel: EventViewModel = viewModel()) {
+fun EventCheckInApp(viewModel: EventViewModel = viewModel(factory = EventViewModel.Factory)) {
     val navController = rememberNavController()
     val events by viewModel.events.collectAsStateWithLifecycle()
     val attendees by viewModel.attendees.collectAsStateWithLifecycle()
@@ -51,7 +51,7 @@ fun EventCheckInApp(viewModel: EventViewModel = viewModel()) {
             EventDetailScreen(
                 event = event,
                 attendees = attendees.filter { it.eventId == eventId },
-                onToggleCheckIn = { attendee -> viewModel.toggleCheckIn(attendee.id) },
+                onToggleCheckIn = { attendee -> viewModel.toggleCheckIn(attendee) },
                 onAddAttendee = { navController.navigate(Routes.addAttendee(eventId)) },
                 onBack = { navController.popBackStack() }
             )

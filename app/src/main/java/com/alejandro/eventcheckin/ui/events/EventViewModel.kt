@@ -1,53 +1,57 @@
 package com.alejandro.eventcheckin.ui.events
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.CreationExtras
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import com.alejandro.eventcheckin.EventCheckInApplication
 import com.alejandro.eventcheckin.data.Attendee
 import com.alejandro.eventcheckin.data.Event
-import com.alejandro.eventcheckin.data.SampleData
-import kotlinx.coroutines.flow.MutableStateFlow
+import com.alejandro.eventcheckin.data.EventRepository
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 /**
- * Holds the state for every screen. The ViewModel survives configuration
- * changes such as screen rotation, which is why the lists live here and not
- * inside a composable. The database replaces this in-memory copy later.
+ * Holds the state for every screen. The lists come from Room as a Flow and are
+ * turned into StateFlow so the UI always has a value to draw, and so the state
+ * survives configuration changes such as screen rotation.
  */
-class EventViewModel : ViewModel() {
+class EventViewModel(private val repository: EventRepository) : ViewModel() {
 
-    private val _events = MutableStateFlow(SampleData.events)
-    val events: StateFlow<List<Event>> = _events.asStateFlow()
+    val events: StateFlow<List<Event>> = repository.events.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS),
+        initialValue = emptyList()
+    )
 
-    private val _attendees = MutableStateFlow(SampleData.attendees)
-    val attendees: StateFlow<List<Attendee>> = _attendees.asStateFlow()
+    val attendees: StateFlow<List<Attendee>> = repository.attendees.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS),
+        initialValue = emptyList()
+    )
 
-    private var nextAttendeeId: Long = (SampleData.attendees.maxOfOrNull { it.id } ?: 0) + 1
-
-    fun eventById(eventId: Long): Event? = _events.value.find { it.id == eventId }
-
-    fun attendeesFor(eventId: Long): List<Attendee> =
-        _attendees.value.filter { it.eventId == eventId }
-
-    fun checkedInCount(eventId: Long): Int =
-        _attendees.value.count { it.eventId == eventId && it.checkedIn }
-
-    fun totalCount(eventId: Long): Int = _attendees.value.count { it.eventId == eventId }
-
-    fun toggleCheckIn(attendeeId: Long) {
-        _attendees.update { list ->
-            list.map { if (it.id == attendeeId) it.copy(checkedIn = !it.checkedIn) else it }
-        }
+    fun toggleCheckIn(attendee: Attendee) = viewModelScope.launch {
+        repository.setCheckedIn(attendee.id, !attendee.checkedIn)
     }
 
-    fun addAttendee(eventId: Long, name: String, phone: String) {
-        _attendees.update { list ->
-            list + Attendee(
-                id = nextAttendeeId++,
-                eventId = eventId,
-                name = name.trim(),
-                phone = phone.trim()
-            )
+    fun addAttendee(eventId: Long, name: String, phone: String) = viewModelScope.launch {
+        repository.addAttendee(eventId, name, phone)
+    }
+
+    companion object {
+        private const val STOP_TIMEOUT_MILLIS = 5_000L
+
+        /** Gives the ViewModel the repository that lives in the Application. */
+        val Factory: ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                val application = this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY]
+                    as EventCheckInApplication
+                EventViewModel(application.repository)
+            }
         }
     }
 }
