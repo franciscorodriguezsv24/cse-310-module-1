@@ -1,7 +1,13 @@
 package com.alejandro.eventcheckin.ui
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
@@ -71,7 +77,13 @@ fun EventCheckInApp(viewModel: EventViewModel = viewModel(factory = EventViewMod
             arguments = listOf(navArgument("eventId") { type = NavType.LongType })
         ) { backStackEntry ->
             val eventId = backStackEntry.arguments?.getLong("eventId") ?: return@composable
-            val event = events.find { it.id == eventId } ?: return@composable
+            val event = events.find { it.id == eventId }
+            if (event == null) {
+                // The event was deleted, or the list has not loaded yet after a
+                // process restart. Wait for the data instead of drawing a blank screen.
+                LoadingOrGone(isLoading = events.isEmpty(), onGone = { navController.popBackStack() })
+                return@composable
+            }
             EventDetailScreen(
                 event = event,
                 attendees = attendees.filter { it.eventId == eventId },
@@ -94,7 +106,11 @@ fun EventCheckInApp(viewModel: EventViewModel = viewModel(factory = EventViewMod
             arguments = listOf(navArgument("eventId") { type = NavType.LongType })
         ) { backStackEntry ->
             val eventId = backStackEntry.arguments?.getLong("eventId") ?: return@composable
-            val event = events.find { it.id == eventId } ?: return@composable
+            val event = events.find { it.id == eventId }
+            if (event == null) {
+                LoadingOrGone(isLoading = events.isEmpty(), onGone = { navController.popBackStack() })
+                return@composable
+            }
             EventFormScreen(
                 title = "Edit event",
                 event = event,
@@ -111,7 +127,11 @@ fun EventCheckInApp(viewModel: EventViewModel = viewModel(factory = EventViewMod
             arguments = listOf(navArgument("eventId") { type = NavType.LongType })
         ) { backStackEntry ->
             val eventId = backStackEntry.arguments?.getLong("eventId") ?: return@composable
-            val event = events.find { it.id == eventId } ?: return@composable
+            val event = events.find { it.id == eventId }
+            if (event == null) {
+                LoadingOrGone(isLoading = events.isEmpty(), onGone = { navController.popBackStack() })
+                return@composable
+            }
             AttendeeFormScreen(
                 title = "Add attendee",
                 eventName = event.name,
@@ -133,8 +153,15 @@ fun EventCheckInApp(viewModel: EventViewModel = viewModel(factory = EventViewMod
         ) { backStackEntry ->
             val eventId = backStackEntry.arguments?.getLong("eventId") ?: return@composable
             val attendeeId = backStackEntry.arguments?.getLong("attendeeId") ?: return@composable
-            val event = events.find { it.id == eventId } ?: return@composable
-            val attendee = attendees.find { it.id == attendeeId } ?: return@composable
+            val event = events.find { it.id == eventId }
+            val attendee = attendees.find { it.id == attendeeId }
+            if (event == null || attendee == null) {
+                LoadingOrGone(
+                    isLoading = events.isEmpty() || attendees.isEmpty(),
+                    onGone = { navController.popBackStack() }
+                )
+                return@composable
+            }
             AttendeeFormScreen(
                 title = "Edit attendee",
                 eventName = event.name,
@@ -150,5 +177,21 @@ fun EventCheckInApp(viewModel: EventViewModel = viewModel(factory = EventViewMod
                 onBack = { navController.popBackStack() }
             )
         }
+    }
+}
+
+/**
+ * Drawn while a destination has no data. Either the database has not emitted
+ * yet, in which case a spinner is enough, or the row is really gone and the
+ * screen closes itself instead of leaving the user on an empty screen.
+ */
+@Composable
+private fun LoadingOrGone(isLoading: Boolean, onGone: () -> Unit) {
+    if (isLoading) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
+    } else {
+        LaunchedEffect(Unit) { onGone() }
     }
 }
