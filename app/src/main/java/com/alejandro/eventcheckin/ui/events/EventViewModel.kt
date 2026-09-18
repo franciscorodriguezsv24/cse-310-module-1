@@ -25,12 +25,14 @@ import kotlinx.coroutines.launch
  */
 class EventViewModel(private val repository: EventRepository) : ViewModel() {
 
+    /** Every event, kept hot for five seconds after the last screen stops watching. */
     val events: StateFlow<List<Event>> = repository.events.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS),
         initialValue = emptyList()
     )
 
+    /** Every attendee of every event. Each screen filters the ones it needs. */
     val attendees: StateFlow<List<Attendee>> = repository.attendees.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS),
@@ -58,14 +60,17 @@ class EventViewModel(private val repository: EventRepository) : ViewModel() {
             initialValue = emptyList()
         )
 
+    /** Called on every keystroke in the search box. */
     fun onSearchQueryChange(query: String) {
         _searchQuery.value = query
     }
 
+    /** Creates an event. The forms validate first, so the text arrives clean. */
     fun addEvent(name: String, location: String, date: String) = viewModelScope.launch {
         repository.addEvent(name, location, date)
     }
 
+    /** Saves the edits made to an existing event. */
     fun updateEvent(event: Event, name: String, location: String, date: String) =
         viewModelScope.launch {
             repository.updateEvent(
@@ -73,22 +78,27 @@ class EventViewModel(private val repository: EventRepository) : ViewModel() {
             )
         }
 
+    /** Deletes an event. Its attendees go with it through the foreign key. */
     fun deleteEvent(event: Event) = viewModelScope.launch {
         repository.deleteEvent(event)
     }
 
+    /** Saves the edits made to an attendee, keeping the check-in state as it is. */
     fun updateAttendee(attendee: Attendee, name: String, phone: String) = viewModelScope.launch {
         repository.updateAttendee(attendee.copy(name = name.trim(), phone = phone.trim()))
     }
 
+    /** Removes one person from an event. */
     fun deleteAttendee(attendee: Attendee) = viewModelScope.launch {
         repository.deleteAttendee(attendee)
     }
 
+    /** Checks a person in, or undoes it if they were already checked in. */
     fun toggleCheckIn(attendee: Attendee) = viewModelScope.launch {
         repository.setCheckedIn(attendee.id, !attendee.checkedIn)
     }
 
+    /** Registers a new person for an event. */
     fun addAttendee(eventId: Long, name: String, phone: String) = viewModelScope.launch {
         repository.addAttendee(eventId, name, phone)
     }

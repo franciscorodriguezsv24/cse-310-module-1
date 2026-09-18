@@ -127,6 +127,7 @@ fun FormField(
     )
 }
 
+/** Preview of the empty form. */
 @Preview(showBackground = true)
 @Composable
 private fun EventFormPreview() {

@@ -22,6 +22,10 @@ private val LightColorScheme = lightColorScheme(
     tertiary = Teal40
 )
 
+/**
+ * Wraps the app in Material 3 colors and typography, following the system
+ * dark setting and using the wallpaper colors on Android 12 and newer.
+ */
 @Composable
 fun EventCheckInTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),

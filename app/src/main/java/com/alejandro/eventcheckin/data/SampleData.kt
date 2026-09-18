@@ -18,5 +18,6 @@ object SampleData {
         Attendee(id = 6, eventId = 3, name = "David Park", phone = "555-0105")
     )
 
+    /** The sample attendees that belong to one sample event. */
     fun attendeesFor(eventId: Long): List<Attendee> = attendees.filter { it.eventId == eventId }
 }

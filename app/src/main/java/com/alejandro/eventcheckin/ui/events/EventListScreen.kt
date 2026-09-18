@@ -112,6 +112,7 @@ fun EventListScreen(
     }
 }
 
+/** One row of the list: the event, its date and location, and its check-in count. */
 @Composable
 private fun EventCard(
     event: Event,
@@ -178,6 +179,7 @@ fun EmptyMessage(title: String, detail: String, modifier: Modifier = Modifier) {
     }
 }
 
+/** Preview drawn in Android Studio from the sample data, without running the app. */
 @Preview(showBackground = true)
 @Composable
 private fun EventListPreview() {

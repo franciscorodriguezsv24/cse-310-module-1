@@ -21,9 +21,11 @@ abstract class AppDatabase : RoomDatabase() {
         @Volatile
         private var instance: AppDatabase? = null
 
+        /** Returns the one database for the process, building it the first time. */
         fun getInstance(context: Context): AppDatabase =
             instance ?: synchronized(this) { instance ?: build(context).also { instance = it } }
 
+        /** Builds the database file and attaches the callback that seeds it. */
         private fun build(context: Context): AppDatabase =
             Room.databaseBuilder(
                 context.applicationContext,

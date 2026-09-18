@@ -139,6 +139,7 @@ fun EventDetailScreen(
     }
 }
 
+/** One attendee: tap the row to edit them, tap the checkbox to check them in. */
 @Composable
 private fun AttendeeRow(
     attendee: Attendee,
@@ -171,6 +172,7 @@ private fun AttendeeRow(
     }
 }
 
+/** Preview drawn in Android Studio from the sample data. */
 @Preview(showBackground = true)
 @Composable
 private fun EventDetailPreview() {

@@ -111,6 +111,7 @@ fun AttendeeFormScreen(
     }
 }
 
+/** Preview of the empty form. */
 @Preview(showBackground = true)
 @Composable
 private fun AttendeeFormPreview() {

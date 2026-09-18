@@ -34,6 +34,7 @@ private fun nullSafety() {
 
 // ------------------------------------------------------------- data classes
 // equals, hashCode, toString and copy are generated for me.
+/** The shape I ended up using in the app, written here first as practice. */
 data class Attendee(
     val id: Int,
     val name: String,
@@ -41,6 +42,7 @@ data class Attendee(
     val checkedIn: Boolean = false            // default argument
 )
 
+/** What a data class gives me for free. */
 private fun dataClasses() {
     val attendee = Attendee(id = 1, name = "Maria", phone = "555-0100")
     val checkedIn = attendee.copy(checkedIn = true)   // copy instead of mutating
@@ -85,12 +87,15 @@ private fun collections() {
 // ---------------------------------------------------------------- functions
 private fun greet(name: String, greeting: String = "Welcome"): String = "$greeting, $name!"
 
+/** Extension function: adds a method to a type I did not write. */
 private fun Attendee.initials(): String =                     // extension function
     name.split(" ").mapNotNull { it.firstOrNull()?.uppercase() }.joinToString("")
 
+/** Takes a function as a parameter, the way map and filter do. */
 private fun summarize(attendees: List<Attendee>, transform: (Attendee) -> String): String =
     attendees.joinToString(", ", transform = transform)       // function as a parameter
 
+/** Default arguments, named arguments, extensions and lambdas. */
 private fun functions() {
     println(greet("Alejandro"))
     println(greet("Bishop", greeting = "Hello"))              // named argument
@@ -99,6 +104,7 @@ private fun functions() {
 }
 
 // ------------------------------------------------------------- conditionals
+/** when used without a subject, as a replacement for an if/else chain. */
 private fun statusLabel(attendee: Attendee?): String = when {
     attendee == null -> "No attendee selected"
     attendee.checkedIn -> "Checked in"
@@ -106,6 +112,7 @@ private fun statusLabel(attendee: Attendee?): String = when {
     else -> "Not here yet"
 }
 
+/** when used with a subject and ranges. */
 private fun sizeLabel(count: Int): String = when (count) {    // when as an expression
     0 -> "Empty"
     in 1..9 -> "Small"
@@ -113,6 +120,7 @@ private fun sizeLabel(count: Int): String = when (count) {    // when as an expr
     else -> "Large"
 }
 
+/** if and when are expressions in Kotlin, so they return a value. */
 private fun conditionals() {
     val status = if (2 > 1) "if is an expression here" else "never"   // if returns a value
     println(status)
@@ -127,6 +135,7 @@ private fun conditionals() {
     println()
 }
 
+/** Runs every exercise in order. */
 fun main() {
     variables()
     nullSafety()

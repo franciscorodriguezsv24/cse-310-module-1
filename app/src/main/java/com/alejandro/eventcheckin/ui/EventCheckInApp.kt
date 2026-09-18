@@ -30,6 +30,7 @@ object Routes {
     const val ADD_ATTENDEE = "events/{eventId}/attendees/new"
     const val EDIT_ATTENDEE = "events/{eventId}/attendees/{attendeeId}"
 
+    // Builders that fill the id into a route, so no screen writes a path by hand.
     fun eventDetail(eventId: Long) = "events/$eventId"
     fun editEvent(eventId: Long) = "events/$eventId/edit"
     fun addAttendee(eventId: Long) = "events/$eventId/attendees/new"
